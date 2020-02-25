@@ -1,0 +1,15 @@
+count = 1
+
+loop do 
+  print "#{count} is "
+  case (count % 2)
+    when 0
+      puts "even!"
+    when 1
+      puts "odd!"
+    else
+      puts "neither even nor odd!"
+    end
+  count += 1
+  break if count > 5
+end
