@@ -1,0 +1,33 @@
+1) a method that returns the sum of two integers
+
+START 
+GET integer1
+verify input
+GET integer2
+verify input
+SET sum = integer1 + integer2
+PRINT sum
+END
+
+2) a method that takes an array of strings and returns a string that is all
+those strings concatenated together
+
+START
+verify input array is strings
+SET result_string = nil
+WHILE index < length
+  append new string to result_string 
+PRINT result_string
+END
+
+3) a method that takes an array of integers and returns a new array with 
+every other element
+
+START
+verify input array is integers
+SET result_array = []  
+WHILE index < length
+  IF index is even
+    append integer at this index to result_array
+PRINT result_array 
+END

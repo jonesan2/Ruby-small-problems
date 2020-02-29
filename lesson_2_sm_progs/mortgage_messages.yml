@@ -1,0 +1,16 @@
+en:
+  welcome: "Welcome to the Mortgage Calculator!"
+  loan_amount: "Please input your loan amount:"
+  apr_amount: "Please input your annual percentage rate (APR):"
+  loan_duration: "Please input your loan duration in years:"
+  input_error: "The input was not a number."
+  print_rate: "Your monthly payment will be"
+  print_duration: "for a duration of"
+es:
+  welcome: "Bienvenido a la calculadora de hipotecas!"
+  loan_amount: "Por favor ingrese el monto de su préstamo:"
+  apr_amount: "Ingrese su tasa de porcentaje anual (TIA):"
+  loan_duration: "Ingrese la duración de su préstamo en años:"
+  input_error: "La entrada no fue un número."
+  print_rate: "Su pago mensual será"
+  print_duration: "por una duración de"
