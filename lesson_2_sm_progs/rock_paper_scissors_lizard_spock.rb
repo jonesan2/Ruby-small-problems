@@ -1,5 +1,8 @@
-VALID_CHOICES = %w(rock paper scissors lizard spock)
-VALID_ABBREVIATIONS = %w(r p sc l sp)
+VALID_CHOICES = [['rock', 'r'],
+                 ['paper', 'p'],
+                 ['scissors', 'sc'],
+                 ['lizard', 'l'],
+                 ['spock', 'sp']]
 WINNING_COMBOS = { 'rock' => ['lizard', 'scissors'],
                    'paper' => ['spock', 'rock'],
                    'scissors' => ['paper', 'lizard'],
@@ -10,12 +13,15 @@ def prompt(message)
   Kernel.puts("=> #{message}")
 end
 
-def convert_abbreviation(abbrev)
-  if VALID_ABBREVIATIONS.include?(abbrev)
-    VALID_CHOICES[VALID_ABBREVIATIONS.find_index(abbrev)]
-  else
-    abbrev
-  end
+def list_options
+  result = ''
+  VALID_CHOICES.each { |set| result << set[0] + ' (' + set[1] + '), ' }
+  result = result.slice(0..-3) # Cut off the final comma
+end
+
+def convert_abbreviation(choice)
+  VALID_CHOICES.each { |set| return set[0] if set[1] == choice }
+  choice
 end
 
 def win?(first, second)
@@ -27,19 +33,18 @@ computer_wins = 0
 loop do
   choice = ''
   loop do
-    prompt("Choose one: #{VALID_CHOICES.join(', ')}")
-    prompt("  Valid abbreviations: #{VALID_ABBREVIATIONS.join(', ')}")
+    prompt("Choose one: #{list_options}")
     choice = Kernel.gets().chomp()
 
-    choice = convert_abbreviation(choice)
-    if VALID_CHOICES.include?(choice)
+    if VALID_CHOICES.flatten.include?(choice)
       break
     else
       prompt("That's not a valid choice.")
     end
   end
+  choice = convert_abbreviation(choice)
 
-  computer_choice = VALID_CHOICES.sample
+  computer_choice = VALID_CHOICES.sample[0]
 
   prompt("You chose: #{choice}; Computer chose: #{computer_choice}")
 
