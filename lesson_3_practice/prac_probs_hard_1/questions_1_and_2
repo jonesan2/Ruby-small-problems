@@ -1,0 +1,21 @@
+Question 1
+
+What happens when you reference a variable that was initialized in a preceding
+if conditional that was not executed?
+
+Normally, a reference to an uninitialized variable causes Ruby to throw an
+exception for "undefined method or local variable." But Ruby initializes
+variables to nil if they are initialized in an unexecuted if condition.
+
+Question 2
+
+Does assignment to a hash value create a new object?
+
+Answer: NO. Assignment of a variable to a hash value uses the same object
+id as the value of the hash. So any mutations to the new variable will also
+mutate the hash value.
+This can be avoided with an assignment using the Object#clone method, or by
+an assignment that uses concatenation, which creates a new object.
+
+
+
