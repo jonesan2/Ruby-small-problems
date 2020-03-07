@@ -21,6 +21,9 @@
 # I didn't read all the documentation for the ! methods. All I did was look to
 #   see if there were any (!) methods that didn't have a corresponding method
 #   of the same name but without the '!'. 
+#   There is one that I have seen, Array#sort_by! 
+#   This has no corresponding Array#sort_by method, but there is an 
+#     Enumerable#sort_by method that sorts without mutating.
 
 
 DIGIT_STRINGS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'].freeze
