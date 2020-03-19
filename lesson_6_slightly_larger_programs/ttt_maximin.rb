@@ -131,7 +131,7 @@ end
 def find_minimax(brd, sqr, plr)
   brd[sqr] = MARKERS[plr]
 
-  minimax = if check_win?(brd, plr)
+  minimax = if detect_winner(brd) == plr
               -1
             elsif empty_squares(brd) == []
               0
@@ -143,18 +143,17 @@ def find_minimax(brd, sqr, plr)
   minimax
 end
 
-def check_win?(brd, plr)
-  WINNING_LINES.any? do |line|
-    brd.values_at(*line).count(MARKERS[plr]) == 3
-  end
-end
-
 def board_full?(brd)
   empty_squares(brd).empty?
 end
 
 def someone_won?(brd)
   !!detect_winner(brd)
+end
+
+def update_score(brd, scr)
+  winner = detect_winner(brd)
+  scr[winner] += 1 if winner
 end
 
 def detect_winner(brd)
@@ -171,7 +170,6 @@ end
 def display_game_end(brd, scr)
   display_board(brd, scr)
   if someone_won?(brd)
-    scr[detect_winner(brd)] += 1
     prompt "#{detect_winner(brd)} won!"
   else
     prompt "It's a tie!"
@@ -203,7 +201,9 @@ loop do
     break if board_full?(board) || someone_won?(board)
   end
 
+  update_score(board, score)
   break if score.values.include?(5)
+
   display_game_end(board, score)
   break unless play_again?
 end
