@@ -1,21 +1,19 @@
-# Added improvements from provided solution:
-# 2) The initialize_deck method can just return a fresh deck. There is no need
-#    to pass it an argument.
-# 3) The conditionals used for results are symbols rather than strings.
-# 4) The play_again? code is a separate method.
-# 5) The play_again? method checks to see if the entered string *starts_with* y
+# Twenty-One Game 
+#  version 2 with Bonus Features Added
 #
-# Bonus features
-# 1) If I were going to reduce the number of times I check the total,
-#    I would modify the hands hash so that the :Player and :Dealer keys indexed
-#    hashes that included a hand of cards and a total value. The functions that
-#    need to access the total could do so by reading and modifying the hands 
-#    hash.
+# Questions:
+#   1) What to do with parameter names in methods that parallel the names of
+#        the arguments in the main body?
+#   2) It seems there is often a tradeoff between computational efficiency and
+#        code readability. I was under the impression that in Ruby, code
+#        readability normally takes precedence. Is this accurate?
 
 SUITS = { Clubs: '♣', Diamonds: '♢', Hearts: '♡', Spades: '♠' }
 VALUES = { '2' => 2, '3' => 3, '4' => 4, '5' => 5, '6' => 6,
            '7' => 7, '8' => 8, '9' => 9, '10' => 10, 'J' => 10,
            'Q' => 10, 'K' => 10, 'A' => 1 }
+MAX_TOTAL = 21
+DEALER_STOP = 17
 
 def prompt(msg)
   puts " => #{msg}"
@@ -33,8 +31,10 @@ end
 
 def deal_starting_hands!(hands, deck)
   2.times do |_|
-    hands[:Player] << deck.pop
-    hands[:Dealer] << deck.pop
+    hands[:Player][:cards] << deck.pop
+    update_total(hands[:Player])
+    hands[:Dealer][:cards] << deck.pop
+    update_total(hands[:Dealer])
   end
 end
 
@@ -50,14 +50,27 @@ def hidden_display(hand)
   "??  #{card_display(hand[1])}"
 end
 
+# rubocop:disable Metrics/AbcSize
 def display_hands(hds, hide_dealer)
+  system 'clear'
   puts
   print "Dealer cards:  "
-  puts hide_dealer ? hidden_display(hds[:Dealer]) : hand_display(hds[:Dealer])
+
+  if hide_dealer
+    puts hidden_display(hds[:Dealer][:cards])
+  else
+    puts hand_display(hds[:Dealer][:cards])
+  end
+
   puts
-  puts "Player cards:  #{hand_display(hds[:Player])}"
+  puts "Player cards:  #{hand_display(hds[:Player][:cards])}"
+  puts
+  print "Totals:  Dealer "
+  print(hide_dealer ? "??, " : "#{hds[:Dealer][:value]}, ")
+  puts "Player #{hds[:Player][:value]}"
   puts
 end
+# rubocop:enable Metrics/AbcSize
 
 def player_hit?
   choice = ''
@@ -70,41 +83,49 @@ def player_hit?
   choice.upcase == 'H' ? true : false
 end
 
-def check_total(hnd)
-  total = hnd.reduce(0) { |sum, card| sum + VALUES[card[:value]] }
-  if hnd.map { |card| card[:value] }.include?('A') && total <= 11
+def update_total(hnd)
+  total = hnd[:cards].reduce(0) { |sum, card| sum + VALUES[card[:value]] }
+  if hnd[:cards].map { |card| card[:value] }.include?('A') && total <= 11
     total += 10
   end
-  total
+  hnd[:value] = total
 end
 
 def player_turn(hands, deck)
   loop do
-    player_hit? ? hands[:Player] << deck.pop : break
-    break if check_total(hands[:Player]) > 21
+    player_hit? ? hands[:Player][:cards] << deck.pop : break
+    update_total(hands[:Player])
     display_hands(hands, true)
+    break if hands[:Player][:value] > MAX_TOTAL
   end
 end
 
 def dealer_turn(hnd, deck)
-  while check_total(hnd) < 17
-    hnd << deck.pop
+  loop do
+    hnd[:value] < DEALER_STOP ? hnd[:cards] << deck.pop : break
+    update_total(hnd)
   end
 end
 
 def check_result(hands)
-  player_total = check_total(hands[:Player])
-  dealer_total = check_total(hands[:Dealer])
-
-  if player_total > 21 then :player_bust
-  elsif dealer_total > 21 then :dealer_bust
-  elsif dealer_total > player_total then :dealer_win
-  elsif dealer_total == player_total then :tie
+  if hands[:Player][:value] > MAX_TOTAL then :player_bust
+  elsif hands[:Dealer][:value] > MAX_TOTAL then :dealer_bust
+  elsif hands[:Dealer][:value] > hands[:Player][:value] then :dealer_win
+  elsif hands[:Dealer][:value] == hands[:Player][:value] then :tie
   else :player_win
   end
 end
 
-def display_result(rslt)
+def update_score(rslt, scr)
+  case rslt
+  when :player_bust then scr[:Dealer] += 1
+  when :dealer_bust then scr[:Player] += 1
+  when :dealer_win then scr[:Dealer] += 1
+  when :player_win then scr[:Player] += 1
+  end
+end
+
+def display_result(rslt, scr)
   case rslt
   when :player_bust then prompt("Player BUST! Dealer wins.")
   when :dealer_bust then prompt("Dealer BUST! Player wins.")
@@ -112,6 +133,7 @@ def display_result(rslt)
   when :tie then prompt("It's a push!")
   when :player_win then prompt("Player wins!")
   end
+  prompt("Running Score:  Dealer #{scr[:Dealer]}, Player #{scr[:Player]}")
 end
 
 def play_again?
@@ -122,21 +144,24 @@ end
 
 prompt('Welcome to the Twenty-One Game')
 
+score = { Player: 0, Dealer: 0 }
 loop do
-  hands = { Player: [], Dealer: [] }
+  hands = { Player: { cards: [], value: 0 },
+            Dealer: { cards: [], value: 0 } }
   deck = initialize_deck
 
   deal_starting_hands!(hands, deck)
   display_hands(hands, true)
 
   player_turn(hands, deck)
-  dealer_turn(hands[:Dealer], deck)
+  dealer_turn(hands[:Dealer], deck) if hands[:Player][:value] <= MAX_TOTAL
 
   result = check_result(hands)
+  update_score(result, score)
   display_hands(hands, false)
-  display_result(result)
+  display_result(result, score)
 
-  break unless play_again?
+  break if score.values.include?(5) || !play_again?
 end
 
 prompt("Thank you for playing Twenty-One")
