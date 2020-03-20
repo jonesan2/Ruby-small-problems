@@ -1,4 +1,4 @@
-# Twenty-One Game 
+# Twenty-One Game
 #  version 2 with Bonus Features Added
 #
 # Questions:
@@ -12,11 +12,18 @@ SUITS = { Clubs: '♣', Diamonds: '♢', Hearts: '♡', Spades: '♠' }
 VALUES = { '2' => 2, '3' => 3, '4' => 4, '5' => 5, '6' => 6,
            '7' => 7, '8' => 8, '9' => 9, '10' => 10, 'J' => 10,
            'Q' => 10, 'K' => 10, 'A' => 1 }
-MAX_TOTAL = 21
-DEALER_STOP = 17
+MAX_TOTAL = 31
+DEALER_STOP = 27
 
 def prompt(msg)
   puts " => #{msg}"
+end
+
+def game_startup
+  system 'clear'
+  prompt('Welcome to Launch School Blackjack!')
+  prompt('Press enter to begin.')
+  gets.chomp
 end
 
 def initialize_deck
@@ -32,9 +39,9 @@ end
 def deal_starting_hands!(hands, deck)
   2.times do |_|
     hands[:Player][:cards] << deck.pop
-    update_total(hands[:Player])
+    update_total!(hands[:Player])
     hands[:Dealer][:cards] << deck.pop
-    update_total(hands[:Dealer])
+    update_total!(hands[:Dealer])
   end
 end
 
@@ -50,9 +57,13 @@ def hidden_display(hand)
   "??  #{card_display(hand[1])}"
 end
 
-# rubocop:disable Metrics/AbcSize
-def display_hands(hds, hide_dealer)
+# rubocop:disable Metrics/AbcSize, Metrics/MethodLength
+def display_game(hds, scr, hide_dealer)
   system 'clear'
+  puts "** YOU ARE PLAYING LAUNCH SCHOOL BLACKJACK **"
+  puts "The first to win 5 hands wins the match."
+  puts "Maximum total allowed is #{MAX_TOTAL}. Dealer stays at #{DEALER_STOP}."
+  puts "Current match score:  Dealer #{scr[:Dealer]}, Player #{scr[:Player]}"
   puts
   print "Dealer cards:  "
 
@@ -70,40 +81,42 @@ def display_hands(hds, hide_dealer)
   puts "Player #{hds[:Player][:value]}"
   puts
 end
-# rubocop:enable Metrics/AbcSize
+# rubocop:enable Metrics/AbcSize, Metrics/MethodLength
 
-def player_hit?
+def player_hit?(hds, scr)
   choice = ''
   loop do
-    prompt("Player, choose Hit (H) or Stay (S):  ")
+    prompt("Player, choose (H)it or (S)tay:  ")
     choice = gets.chomp
-    break if choice =~ /[hs]/i
+    break if choice =~ /^[hs]$|^hit$|^stay$/i
+    display_game(hds, scr, true)
     prompt("Sorry, that is not a valid choice.")
   end
-  choice.upcase == 'H' ? true : false
+  choice.upcase.chr == 'H' ? true : false
 end
 
-def update_total(hnd)
+def update_total!(hnd)
   total = hnd[:cards].reduce(0) { |sum, card| sum + VALUES[card[:value]] }
-  if hnd[:cards].map { |card| card[:value] }.include?('A') && total <= 11
+  if hnd[:cards].map { |card| card[:value] }.include?('A') \
+     && total <= MAX_TOTAL - 10
     total += 10
   end
   hnd[:value] = total
 end
 
-def player_turn(hands, deck)
+def player_turn!(hands, score, deck)
   loop do
-    player_hit? ? hands[:Player][:cards] << deck.pop : break
-    update_total(hands[:Player])
-    display_hands(hands, true)
+    player_hit?(hands, score) ? hands[:Player][:cards] << deck.pop : break
+    update_total!(hands[:Player])
+    display_game(hands, score, true)
     break if hands[:Player][:value] > MAX_TOTAL
   end
 end
 
-def dealer_turn(hnd, deck)
+def dealer_turn!(hnd, deck)
   loop do
     hnd[:value] < DEALER_STOP ? hnd[:cards] << deck.pop : break
-    update_total(hnd)
+    update_total!(hnd)
   end
 end
 
@@ -116,7 +129,7 @@ def check_result(hands)
   end
 end
 
-def update_score(rslt, scr)
+def update_score!(rslt, scr)
   case rslt
   when :player_bust then scr[:Dealer] += 1
   when :dealer_bust then scr[:Player] += 1
@@ -125,7 +138,7 @@ def update_score(rslt, scr)
   end
 end
 
-def display_result(rslt, scr)
+def display_result(rslt)
   case rslt
   when :player_bust then prompt("Player BUST! Dealer wins.")
   when :dealer_bust then prompt("Dealer BUST! Player wins.")
@@ -133,35 +146,40 @@ def display_result(rslt, scr)
   when :tie then prompt("It's a push!")
   when :player_win then prompt("Player wins!")
   end
-  prompt("Running Score:  Dealer #{scr[:Dealer]}, Player #{scr[:Player]}")
 end
 
-def play_again?
-  prompt("Would you like to play again? (Y/N)")
-  again = gets.chomp
-  again.upcase.start_with?('Y')
+def play_again?(hds, scr)
+  again = nil
+  loop do
+    prompt("Would you like to play again? (Y/N)")
+    again = gets.chomp
+    break if again =~ /^[yn]$|^yes$|^no$/i
+    display_game(hds, scr, true)
+    prompt("Sorry, that is not a valid choice.")
+  end
+  again.upcase.chr == 'Y' ? true : false
 end
 
-prompt('Welcome to the Twenty-One Game')
-
+game_startup
 score = { Player: 0, Dealer: 0 }
+
 loop do
   hands = { Player: { cards: [], value: 0 },
             Dealer: { cards: [], value: 0 } }
   deck = initialize_deck
 
   deal_starting_hands!(hands, deck)
-  display_hands(hands, true)
+  display_game(hands, score, true)
 
-  player_turn(hands, deck)
-  dealer_turn(hands[:Dealer], deck) if hands[:Player][:value] <= MAX_TOTAL
+  player_turn!(hands, score, deck)
+  dealer_turn!(hands[:Dealer], deck) if hands[:Player][:value] <= MAX_TOTAL
 
   result = check_result(hands)
-  update_score(result, score)
-  display_hands(hands, false)
-  display_result(result, score)
+  update_score!(result, score)
+  display_game(hands, score, false)
+  display_result(result)
 
-  break if score.values.include?(5) || !play_again?
+  break if score.values.include?(5) || !play_again?(hands, score)
 end
 
 prompt("Thank you for playing Twenty-One")
