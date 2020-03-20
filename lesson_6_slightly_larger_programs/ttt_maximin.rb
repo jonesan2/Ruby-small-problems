@@ -179,7 +179,7 @@ def play_again?
   loop do
     prompt "Play again? (y or n)"
     answer = gets.chomp
-    break if answer =~ /[yn]/i
+    break if answer =~ /^[yn]$/i
     prompt "Sorry, that is not a valid response."
   end
   answer.downcase == 'y' ? true : false
