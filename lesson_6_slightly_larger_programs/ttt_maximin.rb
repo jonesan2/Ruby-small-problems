@@ -4,6 +4,9 @@
 # the Hash#values_at method and the splat operator are used in
 #   the detect_winner method
 #
+# Question: Which implementation is better for soliciting user input...
+#            choose_first_player or play_again?
+#
 # MINIMAX ALGORITHM
 # 1) Test all empty squares
 # 2) For each square, return a minimax value
@@ -68,7 +71,7 @@ def choose_first_player
   loop do
     prompt 'Who should play first? Choose (P)layer or (C)omputer:'
     plr = gets.chomp
-    case plr.downcase.chr
+    case plr.downcase
     when 'p' then return :Player
     when 'c' then return :Computer
     else prompt "Sorry, that entry is invalid."
@@ -85,14 +88,15 @@ def empty_squares(brd)
 end
 
 def player_places_piece!(brd)
-  square = 0
+  square_int = 0
   loop do
     prompt "Choose a square (#{joinor(empty_squares(brd))})"
-    square = gets.chomp.to_i
-    break if empty_squares(brd).include?(square)
+    square = gets.chomp
+    square_int = square.to_i
+    break if square =~ /^[1-9]$/ && empty_squares(brd).include?(square_int)
     prompt "Sorry, that's not a valid choice."
   end
-  brd[square] = MARKERS[:Player]
+  brd[square_int] = MARKERS[:Player]
 end
 
 def computer_places_piece!(brd)
@@ -147,15 +151,6 @@ def board_full?(brd)
   empty_squares(brd).empty?
 end
 
-def someone_won?(brd)
-  !!detect_winner(brd)
-end
-
-def update_score(brd, scr)
-  winner = detect_winner(brd)
-  scr[winner] += 1 if winner
-end
-
 def detect_winner(brd)
   WINNING_LINES.each do |line|
     if brd.values_at(*line).count(MARKERS[:Player]) == 3
@@ -167,13 +162,9 @@ def detect_winner(brd)
   nil
 end
 
-def display_game_end(brd, scr)
+def display_game_end(brd, scr, wnr)
   display_board(brd, scr)
-  if someone_won?(brd)
-    prompt "#{detect_winner(brd)} won!"
-  else
-    prompt "It's a tie!"
-  end
+  wnr ? prompt("#{wnr} won!") : prompt("It's a tie!")
   prompt("Current score:")
   prompt("Player: #{scr[:Player]}, Computer #{scr[:Computer]}")
 end
@@ -184,29 +175,37 @@ def display_match_end(scr)
 end
 
 def play_again?
-  prompt "Play again? (y or n)"
-  answer = gets.chomp
-  answer.downcase.start_with?('y') ? true : false
+  answer = nil
+  loop do
+    prompt "Play again? (y or n)"
+    answer = gets.chomp
+    break if answer =~ /[yn]/i
+    prompt "Sorry, that is not a valid response."
+  end
+  answer.downcase == 'y' ? true : false
 end
 
 score = { Player: 0, Computer: 0 }
 loop do
+  system 'clear'
   board = initialize_board
   current_player = set_first_player
+  winner = nil
 
   loop do
     display_board(board, score)
     place_piece!(board, current_player)
+    winner = detect_winner(board)
+    break if board_full?(board) || winner
     current_player = alternate_player(current_player)
-    break if board_full?(board) || someone_won?(board)
   end
 
-  update_score(board, score)
+  score[winner] += 1 if winner
   break if score.values.include?(5)
 
-  display_game_end(board, score)
+  display_game_end(board, score, winner)
   break unless play_again?
 end
 
 display_match_end(score)
-prompt "Thanks for playing Tic Tac Toe! Good bye!"
+prompt "Thanks for playing Tic Tac Toe! Goodbye."
