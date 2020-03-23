@@ -8,7 +8,7 @@
 #        code readability. I was under the impression that in Ruby, code
 #        readability normally takes precedence. Is this accurate?
 
-SUITS = { Clubs: '♣', Diamonds: '♢', Hearts: '♡', Spades: '♠' }
+SUITS = ["\u2663", "\u2662", "\u2661", "\u2660"]
 VALUES = { '2' => 2, '3' => 3, '4' => 4, '5' => 5, '6' => 6,
            '7' => 7, '8' => 8, '9' => 9, '10' => 10, 'J' => 10,
            'Q' => 10, 'K' => 10, 'A' => 1 }
@@ -28,9 +28,9 @@ end
 
 def initialize_deck
   deck = []
-  SUITS.keys.each do |suit|
+  SUITS.each do |suit|
     VALUES.keys.each do |value|
-      deck << { value: value, suit: suit }
+      deck << { value: value, suit: suit, points: VALUES[value] }
     end
   end
   deck.shuffle
@@ -46,7 +46,7 @@ def deal_starting_hands!(hands, deck)
 end
 
 def card_display(card)
-  "#{card[:value]}#{SUITS[card[:suit]]}  "
+  "#{card[:value]}#{card[:suit]}  "
 end
 
 def hand_display(hand)
@@ -57,31 +57,43 @@ def hidden_display(hand)
   "??  #{card_display(hand[1])}"
 end
 
-# rubocop:disable Metrics/AbcSize, Metrics/MethodLength
-def display_game(hds, scr, hide_dealer)
+def display_game_info(scr)
   system 'clear'
   puts "** YOU ARE PLAYING LAUNCH SCHOOL BLACKJACK **"
   puts "The first to win 5 hands wins the match."
   puts "Maximum total allowed is #{MAX_TOTAL}. Dealer stays at #{DEALER_STOP}."
   puts "Current match score:  Dealer #{scr[:Dealer]}, Player #{scr[:Player]}"
   puts
-  print "Dealer cards:  "
+end
 
-  if hide_dealer
+def display_dealer(hds, hide)
+  print "Dealer cards:  "
+  if hide
     puts hidden_display(hds[:Dealer][:cards])
   else
     puts hand_display(hds[:Dealer][:cards])
   end
-
-  puts
-  puts "Player cards:  #{hand_display(hds[:Player][:cards])}"
-  puts
-  print "Totals:  Dealer "
-  print(hide_dealer ? "??, " : "#{hds[:Dealer][:value]}, ")
-  puts "Player #{hds[:Player][:value]}"
   puts
 end
-# rubocop:enable Metrics/AbcSize, Metrics/MethodLength
+
+def display_player(hds)
+  puts "Player cards:  #{hand_display(hds[:Player][:cards])}"
+  puts
+end
+
+def display_status(hds, hide_dealer)
+  print "Totals:  Dealer "
+  print(hide_dealer ? "??, " : "#{hds[:Dealer][:total]}, ")
+  puts "Player #{hds[:Player][:total]}"
+  puts
+end
+
+def display_game(hds, scr, hide_dealer)
+  display_game_info(scr)
+  display_dealer(hds, hide_dealer)
+  display_player(hds)
+  display_status(hds, hide_dealer)
+end
 
 def player_hit?(hds, scr)
   choice = ''
@@ -96,12 +108,12 @@ def player_hit?(hds, scr)
 end
 
 def update_total!(hnd)
-  total = hnd[:cards].reduce(0) { |sum, card| sum + VALUES[card[:value]] }
+  total = hnd[:cards].reduce(0) { |sum, card| sum + card[:points] }
   if hnd[:cards].map { |card| card[:value] }.include?('A') \
      && total <= MAX_TOTAL - 10
     total += 10
   end
-  hnd[:value] = total
+  hnd[:total] = total
 end
 
 def player_turn!(hands, score, deck)
@@ -109,22 +121,22 @@ def player_turn!(hands, score, deck)
     player_hit?(hands, score) ? hands[:Player][:cards] << deck.pop : break
     update_total!(hands[:Player])
     display_game(hands, score, true)
-    break if hands[:Player][:value] > MAX_TOTAL
+    break if hands[:Player][:total] > MAX_TOTAL
   end
 end
 
 def dealer_turn!(hnd, deck)
   loop do
-    hnd[:value] < DEALER_STOP ? hnd[:cards] << deck.pop : break
+    hnd[:total] < DEALER_STOP ? hnd[:cards] << deck.pop : break
     update_total!(hnd)
   end
 end
 
 def check_result(hands)
-  if hands[:Player][:value] > MAX_TOTAL then :player_bust
-  elsif hands[:Dealer][:value] > MAX_TOTAL then :dealer_bust
-  elsif hands[:Dealer][:value] > hands[:Player][:value] then :dealer_win
-  elsif hands[:Dealer][:value] == hands[:Player][:value] then :tie
+  if hands[:Player][:total] > MAX_TOTAL then :player_bust
+  elsif hands[:Dealer][:total] > MAX_TOTAL then :dealer_bust
+  elsif hands[:Dealer][:total] > hands[:Player][:total] then :dealer_win
+  elsif hands[:Dealer][:total] == hands[:Player][:total] then :tie
   else :player_win
   end
 end
@@ -164,15 +176,15 @@ game_startup
 score = { Player: 0, Dealer: 0 }
 
 loop do
-  hands = { Player: { cards: [], value: 0 },
-            Dealer: { cards: [], value: 0 } }
+  hands = { Player: { cards: [], total: 0 },
+            Dealer: { cards: [], total: 0 } }
   deck = initialize_deck
 
   deal_starting_hands!(hands, deck)
   display_game(hands, score, true)
 
   player_turn!(hands, score, deck)
-  dealer_turn!(hands[:Dealer], deck) if hands[:Player][:value] <= MAX_TOTAL
+  dealer_turn!(hands[:Dealer], deck) if hands[:Player][:total] <= MAX_TOTAL
 
   result = check_result(hands)
   update_score!(result, score)
