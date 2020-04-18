@@ -22,7 +22,7 @@ class Board
   def []=(key, marker)
     @squares[key].marker = marker
   end
-  
+
   def reset
     (1..9).each { |key| @squares[key] = Square.new }
   end
@@ -62,19 +62,19 @@ class Board
     WINNING_LINES.each do |line|
       current_squares = @squares.values_at(*line)
       if win_or_block_open?(current_squares)
-        next unless current_squares.any?(player_marker) 
+        next unless current_squares.any?(player_marker)
         return line[line.find_index { |i| @squares[i].unmarked? }]
       end
     end
     nil
   end
-  
+
   # returns first blocking key found, or nil
   def block_key(player_marker)
     WINNING_LINES.each do |line|
       current_squares = @squares.values_at(*line)
       if win_or_block_open?(current_squares)
-        next unless current_squares.none?(player_marker) 
+        next unless current_squares.none?(player_marker)
         return line[line.find_index { |i| @squares[i].unmarked? }]
       end
     end
@@ -141,7 +141,7 @@ class TTTGame
 
   HUMAN_MARKER = 'X'
   COMPUTER_MARKER = 'O'
-  FIRST_PLAYER = 'choice'
+  FIRST_PLAYER = 'choose'
 
   @@human_score = 0
   @@computer_score = 0
@@ -157,14 +157,14 @@ class TTTGame
   def play
     display_welcome_message
     game_setup
-    
+
     loop do
       play_one_game
       break unless no_match_winner? && play_again?
       display_play_again_message
       reset
     end
-    
+
     display_goodbye_message
   end
 
@@ -199,17 +199,17 @@ class TTTGame
 
   def choose_marker
     choice = nil
-    
+
     loop do
       marker_prompt
       choice = gets.chomp
-      if choice == '' then choice = HUMAN_MARKER end  # default marker
-        
+      if choice == '' then choice = HUMAN_MARKER end # default marker
+
       break if choice.length == 1 && choice != COMPUTER_MARKER
       puts "Sorry, you must choose an unused one-character marker."
       puts
     end
-    
+
     choice
   end
 
@@ -231,14 +231,14 @@ class TTTGame
 
   def reset
     board.reset
-    
+
     # set first player
     case FIRST_PLAYER
     when 'human' then @current_player = @human
     when 'computer' then @current_player = @computer
     when 'choose' then @current_player = choose_first_player
     end
-    
+
     clear
   end
 
@@ -303,6 +303,7 @@ class TTTGame
 
   def human_moves
     square = nil
+
     loop do
       puts "Choose a square (#{joinor(board.unmarked_keys, ', ', 'or')}): "
       square = gets.chomp.to_i
@@ -312,7 +313,7 @@ class TTTGame
 
     board[square] = human.marker
   end
-    
+
   def computer_moves
     cm = computer.marker
 
