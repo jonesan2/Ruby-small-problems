@@ -1,0 +1,60 @@
+# Things I learned:
+# 1) Details on the functions of ? and !
+# 2) Range#cover? function
+# 3) String#prepend
+# 4) Hash#assoc returns a 2-element array with the given key
+#    Array#assoc does the same thing for an array of 2-element arrays
+
+Question 1
+
+1
+2
+2
+3
+
+Question 2
+
+! has multiple functions:
+1) It appears at the end of many methods to indicate that they have side
+   effects. Normally those methods mutate the caller, but not always.
+  a) A method like words.uniq! modifies the words array such that only
+     unique values are kept.
+2) It is a negation symbol in boolean expressions.
+  a) In the != symbol it tests for inequality.
+  b) In an expression like !user_name it negates the boolean returned
+     by the variable user_name.
+  c) In an expression like !!user_name, it converts the variable into
+     its boolean value by negating it twice.
+  
+
+? has multiple functions:
+1) It appears at the end of many methods to indicate that they return a 
+   boolean result.
+2) It is an operator in tertiary conditional statements that follows the
+   condition.
+3) Before a variable name, such as ?user_name, it causes an error.
+
+Question 3
+
+advice.gsub!('important', 'urgent')
+
+Question 5
+
+(10..100).cover?(42)
+
+Question 6
+
+famous_words = "seven years ago..."
+1) famous_words = "Four score and " + famous_words
+2) famous_words = 'Four score and' << famous_words
+
+Question 7
+
+flintstones.flatten!
+
+Question 8
+
+flintstones = { "Fred" => 0, "Wilma" => 1, "Barney" => 2, "Betty" => 3, "BamBam" => 4, "Pebbles" => 5 }
+flintstones.select{ |k, v| k = 'Barney' }.to_a.flatten!
+OR
+flintstones.assoc('Barney')
