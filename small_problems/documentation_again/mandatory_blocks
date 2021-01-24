@@ -1,7 +1,0 @@
-# Use Array#bsearch to find the first element whose value exceeds 8
-#
-# The .bsearch block should return true for x > 8 and false for x < 8
-
-a = [1, 4, 8, 11, 15, 19]
-b = a.bsearch { |x| x > 8 }
-p b
