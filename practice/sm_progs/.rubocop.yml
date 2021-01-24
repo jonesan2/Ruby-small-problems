@@ -1,4 +1,4 @@
-# .rubocop.yml for non-RB101 courses (10 Dec 2019)
+# .rubocop.yml for RB101 Lessons 2-5 (10 Dec 2019)
 
 AllCops:
   # Display cop names
@@ -22,10 +22,6 @@ Style/BlockComments:
 
 Style/BracesAroundHashParameters:
   Description: Forces certain brace styles when the last argument is a hash.
-  Enabled: false
-
-Style/ClassVars:
-  Description: 'Checks for uses of class variables.'
   Enabled: false
 
 Style/CommandLiteral:
@@ -70,8 +66,7 @@ Style/FrozenStringLiteralComment:
 
 Style/GuardClause:
   Description: Check for conditionals that can be replaced with guard clauses.
-  Enabled: true
-  MinBodyLength: 1
+  Enabled: false
 
 Style/HashSyntax:
   Description: >-
@@ -145,18 +140,7 @@ Style/ParenthesesAroundCondition:
 
 Style/PercentLiteralDelimiters:
   Description: 'Use `%`-literal delimiters consistently'
-  Enabled: true
-  PreferredDelimiters:
-    '%':  ()
-    '%i': ()
-    '%I': ()
-    '%q': ()
-    '%Q': ()
-    '%r': ()
-    '%s': ()
-    '%w': ()
-    '%W': ()
-    '%x': ()
+  Enabled: false
 
 Style/PerlBackrefs:
   Description: Avoid Perl-style regex back references.
@@ -186,7 +170,7 @@ Style/SafeNavigation:
                   This cop transforms usages of a method call safeguarded by
                   a check for the existance of the object to
                   safe navigation (`&.`).
-  Enabled: true
+  Enabled: false
 
 Style/SingleLineBlockParams:
   Description: Enforces the names of some block params.
@@ -225,8 +209,7 @@ Metrics/AbcSize:
 
 Metrics/BlockLength:
   Description: Limit size of blocks.
-  Enabled: true
-  Max: 20
+  Enabled: false
 
 Metrics/ClassLength:
   Description: 'Avoid classes longer than 100 lines of code.'
@@ -243,10 +226,10 @@ Metrics/LineLength:
   - https
 
 Metrics/MethodLength:
-  Description: 'Avoid methods longer than 10 lines of code.'
+  Description: 'Avoid methods longer than 15 lines of code.'
   Enabled: true
   CountComments: false  # count full line comments?
-  Max: 10
+  Max: 15
 
 Lint/LiteralInInterpolation:
   Description: 'Avoid interpolating literals in strings'
