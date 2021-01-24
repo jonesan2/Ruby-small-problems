@@ -1,0 +1,3 @@
+Just like #each, a for loop returns the object it was originally
+called on. Not an identical object -- it returns the original object.
+
